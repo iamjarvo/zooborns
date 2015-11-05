@@ -1,0 +1,10 @@
+Building ...
+Compiling src/zooborns/core.cljs
+Compiling out/om/next.cljs
+Compiling out/clojure/walk.cljs
+Compiling out/om/next/protocols.cljs
+Compiling out/om/next/impl/parser.cljc
+Compiling out/clojure/zip.cljs
+Compiling out/om/next/cache.cljs
+... done. Elapsed 0.800027614 seconds
+Watching paths: /Users/jdharr200/code-box/cljsrn/zooborns/src
