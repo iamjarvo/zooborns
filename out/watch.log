@@ -1,10 +1,8 @@
 Building ...
 Compiling src/zooborns/core.cljs
-Compiling out/om/next.cljs
-Compiling out/clojure/walk.cljs
-Compiling out/om/next/protocols.cljs
-Compiling out/om/next/impl/parser.cljc
-Compiling out/clojure/zip.cljs
-Compiling out/om/next/cache.cljs
-... done. Elapsed 0.800027614 seconds
+WARNING: Use of undeclared Var zooborns.core/state at line 112 src/zooborns/core.cljs
+WARNING: Use of undeclared Var zooborns.core/v at line 113 src/zooborns/core.cljs
+... done. Elapsed 0.568907424 seconds
+WARNING: Use of undeclared Var zooborns.core/state at line 112 src/zooborns/core.cljs
+WARNING: Use of undeclared Var zooborns.core/v at line 113 src/zooborns/core.cljs
 Watching paths: /Users/jdharr200/code-box/cljsrn/zooborns/src

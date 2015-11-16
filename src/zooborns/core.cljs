@@ -2,11 +2,15 @@
 (set! js/React (js/require "react-native/Libraries/react-native/react-native.js"))
 
 (ns zooborns.core
-  (:require [om.next :as om :refer-macros [defui]]))
+  (:require [om.next :as om :refer-macros [defui]]
+            [zooborns.mock :as mock]))
+
+
+(enable-console-print!)
 
 (def styles
-  {:container {:flex 1 :flexDirection "row" :justifyContent "center" :alignItems "center" :backgroundColor "#F5FCFF"}
-   :list-view {:paddingTop 20 :backgroundColor "#F5FCFF"}
+  {:container {:flex 1 :flexDirection "row" :justifyContent "center" :alignItems "center" :backgroundColor "#fff"}
+   :list-view {:paddingTop 20 :backgroundColor "#fff"}
    :rightContainer {:flex 1}
    :thumbnail {:backgroundColor "#3b3b39" :height 81 :width 53}
    :title {:fontSize 20 :marginBottom 8 :textAlign "center"}
@@ -29,24 +33,51 @@
 (defn list-view [opts & children]
   (js/React.createElement js/React.ListView (clj->js opts) children))
 
+(defn image [opts & children]
+  (js/React.createElement js/React.Image (clj->js opts) children))
+
 (defn row-has-changed [x y]
   (let [row-1 (js->clj x :keywordize-keys true) row-2 (js->clj y :keywordize-keys true)]
        (not= row-1 row-2)))
 
 
 ;; Set up our Om UI
-(defonce app-state (atom {:app/msg "Welcome to zooborns"
+(def app-state (atom {:app/title "ZoBabies"
                           :dataSource (js/React.ListView.DataSource. (clj->js {:rowHasChanged row-has-changed}))
-                          :posts [{:title "First post"}
-                                  {:title "Second post"}
-                                  {:title "Third post"}
-                                  {:title "Fourth post"}
-                                  {:title "Fifth post"}]}))
+                      :posts mock/data}))
+(defui PostComponent
+  Object
+  (render
+   [this]
+   (view
+    {:style (:container styles)} 
+    (text
+     {:style {:flexDirection "column" :flex 6 :fontSize 16 :fontFamily "Georgia" :color "#999"}}
+     (.-excerpt (.-post (.-props this)))))))
 
-(defn render-post [p]
-  (let [post (js->clj p :keywordize-keys true)]
-    (view {:style {:flexDirection "row" :paddingTop 10}}
-          (text nil (:title post)))))
+(defn show-post
+  [t post]
+  (let [navigator (.-navigator (.-props t))]
+    (.push navigator
+           (clj->js {:title (:title post) :component PostComponent :passProps (clj->js {:post post})}))))
+
+(defn render-post
+  [p context]
+  (let [post (js->clj p :keywordize-keys true)
+        view-styles {:flexDirection "column" :marginBottom 30 :paddingLeft 15 :paddingRight 15}
+        header-styles {:flexDirection "column" :flex 6 :fontSize 20 :fontFamily "Georgia" :fontWeight "bold" :marginBottom 10}
+        post-styles {:flexDirection "column" :flex 6 :fontSize 16 :fontFamily "Georgia" :color "#999"}]
+    (js/React.createElement
+     js/React.TouchableHighlight #js {:onPress #(show-post context post) :underlayColor "none" :activeOpacity 0.5}
+     (view
+      {:style view-styles}
+      (text
+       {:style header-styles}
+       (:title post))
+      (text
+       {:style post-styles}
+       (:excerpt post))))))
+
 
 (def posts
   (:posts @app-state))
@@ -55,23 +86,27 @@
   Object
   (render
    [this]
-   (list-view {:dataSource (.cloneWithRows (:dataSource @app-state) (clj->js posts))
-               :renderRow render-post
-               :style (:list-view styles)})))
+   (list-view
+    {:dataSource (.cloneWithRows (:dataSource @app-state) (clj->js posts))
+     :renderRow #(render-post % this)
+     :style (:list-view styles)})))
+
 
 (defui WidgetComponent
   static om/IQuery
   (query
    [this]
-   '[:app/msg])
+   '[:app/title])
   Object
   (render
    [this]
-   (navigator-ios {:style {:flex 1}
-                   :initialRoute {:component RecentPostsComponent :title "ZooBorns"}})))
+   (let [{:keys [app/title]} (om/props this)]
+     (navigator-ios {:style {:flex 1}
+                     :initialRoute {:component RecentPostsComponent :title title}}))))
 
 ;; om.next parser
 (defmulti read om/dispatch)
+
 (defmethod read :default
   [{:keys [state]} k _]
   (let [st @state]
@@ -80,9 +115,11 @@
       {:value v}
       {:value :not-found})))
 
+
 (def reconciler
   (om/reconciler
    {:state app-state
+    :my-props app-state
     :parser (om/parser {:read read})
     :root-render #(.render js/React %1 %2)
     :root-unmount #(.unmountComponentAtNode js/React %)}))
