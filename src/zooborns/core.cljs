@@ -3,6 +3,7 @@
 
 (ns zooborns.core
   (:require [om.next :as om :refer-macros [defui]]
+            [zooborns.helpers :as el]
             [zooborns.mock :as mock]))
 
 
@@ -20,22 +21,6 @@
 (set! js/React (js/require "react-native/Libraries/react-native/react-native.js"))
 
 
-;; Setup some methods to help create React Native elements
-(defn view [opts & children]
-  (apply js/React.createElement js/React.View (clj->js opts) children))
-
-(defn text [opts & children]
-  (apply js/React.createElement js/React.Text (clj->js opts) children))
-
-(defn navigator-ios [opts]
-  (js/React.createElement js/React.NavigatorIOS (clj->js opts)))
-
-(defn list-view [opts & children]
-  (js/React.createElement js/React.ListView (clj->js opts) children))
-
-(defn image [opts & children]
-  (js/React.createElement js/React.Image (clj->js opts) children))
-
 (defn row-has-changed [x y]
   (let [row-1 (js->clj x :keywordize-keys true) row-2 (js->clj y :keywordize-keys true)]
        (not= row-1 row-2)))
@@ -49,9 +34,9 @@
   Object
   (render
    [this]
-   (view
+   (el/view
     {:style (:container styles)} 
-    (text
+    (el/text
      {:style {:flexDirection "column" :flex 6 :fontSize 16 :fontFamily "Georgia" :color "#999"}}
      (.-excerpt (.-post (.-props this)))))))
 
@@ -69,12 +54,12 @@
         post-styles {:flexDirection "column" :flex 6 :fontSize 16 :fontFamily "Georgia" :color "#999"}]
     (js/React.createElement
      js/React.TouchableHighlight #js {:onPress #(show-post context post) :underlayColor "none" :activeOpacity 0.5}
-     (view
+     (el/view
       {:style view-styles}
-      (text
+      (el/text
        {:style header-styles}
        (:title post))
-      (text
+      (el/text
        {:style post-styles}
        (:excerpt post))))))
 
@@ -86,7 +71,7 @@
   Object
   (render
    [this]
-   (list-view
+   (el/list-view
     {:dataSource (.cloneWithRows (:dataSource @app-state) (clj->js posts))
      :renderRow #(render-post % this)
      :style (:list-view styles)})))
@@ -101,7 +86,7 @@
   (render
    [this]
    (let [{:keys [app/title]} (om/props this)]
-     (navigator-ios {:style {:flex 1}
+     (el/navigator-ios {:style {:flex 1}
                      :initialRoute {:component RecentPostsComponent :title title}}))))
 
 ;; om.next parser
